@@ -1,23 +1,29 @@
-// src/components/ConsultaCotacoes.js
-
 import React, { useState, useEffect } from 'react';
-import { TextField, Container, Typography, Box, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { TextField, Container, Typography, Box, Table, TableBody, TableCell, TableHead, TableRow, useMediaQuery } from '@mui/material';
+import { db } from '../infra/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const ConsultaCotacoes = () => {
     const [produto, setProduto] = useState('');
     const [cotacoes, setCotacoes] = useState([]);
+    const isMobile = useMediaQuery(theme => theme.breakpoints.down('sm'));
 
     useEffect(() => {
-        if (produto) {
-            // Lógica para obter cotações do produto
-            setCotacoes([
-                // Exemplo de cotações
-                { id: 1, fornecedor: 'Fornecedor 1', data: '2023-06-15', preco: 100 },
-                { id: 2, fornecedor: 'Fornecedor 2', data: '2023-06-20', preco: 110 },
-            ]);
-        } else {
-            setCotacoes([]);
-        }
+        const fetchCotacoes = async () => {
+            if (produto) {
+                const q = query(collection(db, 'cotacoes'), where('produto', '==', produto));
+                const querySnapshot = await getDocs(q);
+                const cotacoesData = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                setCotacoes(cotacoesData);
+            } else {
+                setCotacoes([]);
+            }
+        };
+
+        fetchCotacoes();
     }, [produto]);
 
     return (
@@ -33,7 +39,7 @@ const ConsultaCotacoes = () => {
                 />
             </Box>
             {cotacoes.length > 0 && (
-                <Table>
+                <Table size={isMobile ? 'small' : 'medium'}>
                     <TableHead>
                         <TableRow>
                             <TableCell>Fornecedor</TableCell>

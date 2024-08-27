@@ -1,28 +1,47 @@
-// src/components/FormCotacao.js
-
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { TextField, Button, Container, Typography, Box } from '@mui/material';
+import { collection, doc, setDoc, deleteDoc, getDoc } from "firebase/firestore";
+import { db } from '../infra/firebase';
 
 const FormCotacao = ({ idEmEdicao, setIdEmEdicao }) => {
     const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm();
 
     useEffect(() => {
         if (idEmEdicao) {
-            // Lógica para obter cotação existente e preencher o formulário
+            const fetchData = async () => {
+                const docRef = doc(db, "cotacoes", idEmEdicao);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    setValue("produto", data.produto);
+                    setValue("fornecedor", data.fornecedor);
+                    setValue("dataCotacao", data.dataCotacao);
+                    setValue("preco", data.preco);
+                }
+            };
+            fetchData();
         } else {
             reset();
         }
     }, [idEmEdicao, reset, setValue]);
 
     const submeterDados = async (dados) => {
-        // Lógica para inserir ou atualizar cotação
+        if (idEmEdicao) {
+            await setDoc(doc(db, "cotacoes", idEmEdicao), dados);
+        } else {
+            await setDoc(doc(collection(db, "cotacoes")), dados);
+        }
         reset();
+        setIdEmEdicao(null);
     };
 
     const handleExcluir = async () => {
-        // Lógica para excluir cotação
+        if (idEmEdicao) {
+            await deleteDoc(doc(db, "cotacoes", idEmEdicao));
+        }
         setIdEmEdicao(null);
+        reset();
     };
 
     return (

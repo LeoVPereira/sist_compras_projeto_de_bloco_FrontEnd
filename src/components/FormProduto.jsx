@@ -3,6 +3,8 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { TextField, Button, Container, Typography, Box } from '@mui/material';
+import { collection, addDoc, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { db } from '../infra/firebase'; // Importando o Firestore
 
 const FormProduto = ({ idEmEdicao, setIdEmEdicao }) => {
     const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm();
@@ -10,19 +12,44 @@ const FormProduto = ({ idEmEdicao, setIdEmEdicao }) => {
     useEffect(() => {
         if (idEmEdicao) {
             // Lógica para obter produto existente e preencher o formulário
+            const fetchProduto = async () => {
+                const produtoRef = doc(db, "produtos", idEmEdicao);
+                const produtoSnap = await getDoc(produtoRef);
+                if (produtoSnap.exists()) {
+                    const data = produtoSnap.data();
+                    setValue("nome", data.nome);
+                    setValue("descricao", data.descricao);
+                    setValue("codigo", data.codigo);
+                    setValue("categoria", data.categoria);
+                    setValue("preco", data.preco);
+                }
+            };
+            fetchProduto();
         } else {
             reset();
         }
     }, [idEmEdicao, reset, setValue]);
 
     const submeterDados = async (dados) => {
-        // Lógica para inserir ou atualizar produto
+        if (idEmEdicao) {
+            // Atualizar produto existente
+            const produtoRef = doc(db, "produtos", idEmEdicao);
+            await updateDoc(produtoRef, dados);
+        } else {
+            // Adicionar novo produto
+            await addDoc(collection(db, "produtos"), dados);
+        }
         reset();
+        setIdEmEdicao(null);
     };
 
     const handleExcluir = async () => {
-        // Lógica para excluir produto
-        setIdEmEdicao(null);
+        if (idEmEdicao) {
+            const produtoRef = doc(db, "produtos", idEmEdicao);
+            await deleteDoc(produtoRef);
+            setIdEmEdicao(null);
+        }
+        reset();
     };
 
     return (

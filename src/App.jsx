@@ -1,8 +1,6 @@
-// src/App.js
-
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Button, Container, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Container, Box, Menu, MenuItem } from '@mui/material';
 import FornecedorPage from './pages/FornecedorPage';
 import ContatoPage from './pages/ContatoPage';
 import ProdutoPage from './pages/ProdutoPage';
@@ -10,6 +8,19 @@ import CotacaoPage from './pages/CotacaoPage';
 import ConsultaCotacoesPage from './pages/ConsultaCotacoesPage';
 
 const App = () => {
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [menu, setMenu] = useState('');
+
+    const handleMenuClick = (event, menuType) => {
+        setAnchorEl(event.currentTarget);
+        setMenu(menuType);
+    };
+
+    const handleClose = () => {
+        setAnchorEl(null);
+        setMenu('');
+    };
+
     return (
         <Router>
             <AppBar position="static">
@@ -17,11 +28,35 @@ const App = () => {
                     <Typography variant="h6" sx={{ flexGrow: 1 }}>
                         Sistema de Compras
                     </Typography>
-                    <Button color="inherit" component={Link} to="/">Fornecedores</Button>
-                    <Button color="inherit" component={Link} to="/contatos">Contatos</Button>
-                    <Button color="inherit" component={Link} to="/produtos">Produtos</Button>
-                    <Button color="inherit" component={Link} to="/cotacoes">Cotações</Button>
-                    <Button color="inherit" component={Link} to="/consulta-cotacoes">Consulta Cotações</Button>
+                    <Button
+                        color="inherit"
+                        onClick={(event) => handleMenuClick(event, 'cadastrar')}
+                    >
+                        Cadastrar
+                    </Button>
+                    <Button
+                        color="inherit"
+                        onClick={(event) => handleMenuClick(event, 'consultar')}
+                    >
+                        Consultar
+                    </Button>
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl) && menu === 'cadastrar'}
+                        onClose={handleClose}
+                    >
+                        <MenuItem onClick={handleClose} component={Link} to="/">Fornecedores</MenuItem>
+                        <MenuItem onClick={handleClose} component={Link} to="/contatos">Contatos</MenuItem>
+                        <MenuItem onClick={handleClose} component={Link} to="/produtos">Produtos</MenuItem>
+                        <MenuItem onClick={handleClose} component={Link} to="/cotacoes">Cotações</MenuItem>
+                    </Menu>
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl) && menu === 'consultar'}
+                        onClose={handleClose}
+                    >
+                        <MenuItem onClick={handleClose} component={Link} to="/consulta-cotacoes">Consulta Cotações</MenuItem>
+                    </Menu>
                 </Toolbar>
             </AppBar>
             <Container>

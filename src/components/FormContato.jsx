@@ -1,28 +1,47 @@
-// src/components/FormContato.js
-
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { TextField, Button, Container, Typography, Box } from '@mui/material';
+import { collection, doc, setDoc, deleteDoc, getDoc } from "firebase/firestore";
+import { db } from '../infra/firebase';
 
 const FormContato = ({ idEmEdicao, setIdEmEdicao }) => {
     const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm();
 
     useEffect(() => {
         if (idEmEdicao) {
-            // Lógica para obter contato existente e preencher o formulário
+            const fetchData = async () => {
+                const docRef = doc(db, "contatos", idEmEdicao);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    setValue("nome", data.nome);
+                    setValue("email", data.email);
+                    setValue("telefone", data.telefone);
+                    setValue("cargo", data.cargo);
+                }
+            };
+            fetchData();
         } else {
             reset();
         }
     }, [idEmEdicao, reset, setValue]);
 
     const submeterDados = async (dados) => {
-        // Lógica para inserir ou atualizar contato
+        if (idEmEdicao) {
+            await setDoc(doc(db, "contatos", idEmEdicao), dados);
+        } else {
+            await setDoc(doc(collection(db, "contatos")), dados);
+        }
         reset();
+        setIdEmEdicao(null);
     };
 
     const handleExcluir = async () => {
-        // Lógica para excluir contato
+        if (idEmEdicao) {
+            await deleteDoc(doc(db, "contatos", idEmEdicao));
+        }
         setIdEmEdicao(null);
+        reset();
     };
 
     return (
